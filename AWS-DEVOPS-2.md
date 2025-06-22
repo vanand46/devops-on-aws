@@ -1,157 +1,248 @@
-# AWS DevOps - CI/CD Pipeline in AWS
+# Building a CI/CD Pipeline on AWS with CodePipeline, CodeBuild, and Elastic Beanstalk
 
-## Code Pipeline
+This guide provides a step-by-step tutorial for creating a complete CI/CD pipeline on AWS. We will use AWS CodePipeline to automate the build and deployment of a sample web application from a GitHub repository to an AWS Elastic Beanstalk environment.
 
-- Fully managed CI/CD by AWS.
-- Automates the process of building, testing, and deploying the code everytime there is a change.
-- No severs to manage
-- Fully integrated AWS services
-- Continuous Delivery.End to End software release.
-- Integration with third party tools: Works with GitHub, Jenkins, SonarQube etc.
+### Prerequisites
 
-## Build Tools - AWS Code Build (alternative to maven)
+*   An AWS Account with console access.
+*   A GitHub account.
 
-- Service that compiles source code, run tests, and produces software packages that are already ready to be deployed.
-- Eliminates the need to provision, manage and scale your own build servers.
-- Costly tool.
-- Fully managed.
+---
 
-## Code Pipeline An Example
+## AWS Services Overview
 
-It is the step by step process via which we can automate the project deployment.
+Before we begin, let's briefly review the core services we will be using.
 
-**Github.com** -> **Code Build** -> **Beanstalk**
+### AWS CodePipeline
 
-**Note** - Beanstalk is a service offered by AWS where the complete infra like ec2 instances, load balancer, autoscaling, security managed by AWS.
+*   A fully managed continuous integration and continuous delivery (CI/CD) service from AWS.
+*   Automates the process of building, testing, and deploying your code every time there is a change.
+*   It's a serverless orchestrator, meaning you don't need to manage any underlying servers for the pipeline itself.
+*   Integrates seamlessly with other AWS services (like CodeBuild, S3, Elastic Beanstalk) and third-party tools (like GitHub, Jenkins).
 
-### Create the pipeline
+### AWS CodeBuild
 
-- Go to AWS Console and search for CodePipline
-![alt text](image-31.png)
+*   A fully managed continuous integration service that compiles source code, runs tests, and produces software packages that are ready to deploy.
+*   Eliminates the need to provision, manage, and scale your own build servers.
+*   It is used as a "build stage" within CodePipeline. You only pay for the build minutes you consume.
+*   Operates based on a `buildspec.yml` file in your repository, which defines the build commands.
 
-- Click on 'Create Pipepline' and select 'Build custom pipline' then click 'Next'
-![alt text](image-32.png)
+### AWS Elastic Beanstalk
 
-- On this window, Give a Pipeline name, then select 'Superseded' as Execution mode.
-- Then select 'New service role' as Service role, then please provide role service name, then click next.
-![alt text](image-33.png)
+*   An easy-to-use service for deploying and scaling web applications and services.
+*   You simply upload your code, and Elastic Beanstalk automatically handles the deployment, from capacity provisioning, load balancing, and auto-scaling to application health monitoring.
+*   It provisions the underlying infrastructure for you, including EC2 instances, load balancers, and security groups.
 
-- Open the following link in another tab or window of the browser.
-    - https://github.com/akshu20791/apachewebsite
+---
 
-- Click on fork button
-![alt text](image-34.png)
+## Part 1: Fork the Sample Repository
 
-- Go back to your code pipeline creation window and select the 'GitHub(via OAuth app)' from source provider list.
-![alt text](image-35.png)
+First, we need a sample application to deploy. We will fork a simple PHP website from a public GitHub repository.
 
-- Click on connect
-  - There connect your github account with the aws code pipeline
-![alt text](image-36.png)
-![alt text](image-37.png)
+1.  Open the following link in your browser:
+    *   https://github.com/akshu20791/apachewebsite
 
-- Then select repo forked above from the repositries list and select master as the branch, then click next.
-![alt text](image-38.png)
+2.  Click the **Fork** button in the top-right corner to create a copy of this repository in your own GitHub account.
+    ![alt text](image-34.png)
 
-- Skip the build page and skip test page
-![alt text](image-39.png)
+---
 
-- Then from the Deploy provide list select, AWS Elastic Beanstalk
+## Part 2: Set Up the Deployment Environment with Elastic Beanstalk
 
-### Lets deploy the sample php application on elastic beanstalk
-![alt text](image-40.png)
-![alt text](image-41.png)
-![alt text](image-42.png)
-![alt text](image-43.png)
-![alt text](image-44.png)
-![alt text](image-45.png)
+Before creating our pipeline, we need a target environment to deploy to. We will create a new PHP environment using AWS Elastic Beanstalk.
 
-- Then Press Next
-- In front of Service role -> Create role
-    - Next -> next -> create role
-        ![alt text](image-46.png)
-        ![alt text](image-47.png)
-- Go back to elastic beanstalk -> check the role\
-![alt text](image-48.png) 
-- Similarly create role for ec2 instance
-    - Create role -> next -> next -> next
-        ![alt text](image-49.png)
-![alt text](image-50.png)
-- To generate the key pair -> go to ec2 -> create a new keypair
-![alt text](image-51.png) 
-![alt text](image-52.png)
-- In Elasticbeanstalk, select the created key pair
-![alt text](image-53.png)
+1.  In the AWS Console, search for and navigate to the **Elastic Beanstalk** service.
 
-- Click Next
-- Select vpc from drop down and check the 'Public IP address' as activated
-![alt text](image-54.png)
-![alt text](image-55.png)
-- Click Next
-- In Root volume type: general purpose 3 (ssd) and then press Next
-![alt text](image-56.png)
-- Next -> Create
-![alt text](image-57.png)
+2.  Click **Create application**.
+    ![alt text](image-40.png)
 
-### Now lets move back to code pipeline and we will deploy the code to the elastic beanstalk
-![alt text](image-58.png)
-- Create Pipeline
-![alt text](image-59.png)
+3.  Configure the application:
+    *   **Application name:** `MyWebApp` (or any name you prefer).
+    *   **Platform:** Select `PHP`.
+    *   **Application code:** Choose `Sample application`.
+    *   Click **Create application**.
+    ![alt text](image-41.png)
+    ![alt text](image-42.png)
+    ![alt text](image-43.png)
+    ![alt text](image-44.png)
+    ![alt text](image-45.png)
+
+4.  Elastic Beanstalk will now begin provisioning the environment. This includes creating EC2 instances, security groups, and other necessary resources. This process may take several minutes.
+
+    *Note: The original guide includes steps for manual role and key pair creation. The modern Elastic Beanstalk wizard handles most of this automatically. If you need a specific EC2 key pair for SSH access, you can create one in the EC2 console and attach it during the "Configure more options" step.*
+
+    *   To create a key pair: Navigate to **EC2 > Network & Security > Key Pairs** and click **Create key pair**.
+        ![alt text](image-51.png)
+        ![alt text](image-52.png)
+
+    *   You can then specify this key pair in the Elastic Beanstalk configuration under **Security**.
+        ![alt text](image-53.png)
+
+5.  Once the environment is successfully launched, you will see a green health check. Click the environment URL to see the sample application running.
+    ![alt text](image-67.png)
+    ![alt text](image-68.png)
+
+---
+
+## Part 3: Create the CI/CD Pipeline
+
+Now that we have a deployment target, let's create the pipeline to automate our deployments.
+
+1.  In the AWS Console, search for and navigate to the **CodePipeline** service.
+    ![alt text](image-31.png)
+
+2.  Click **Create pipeline**.
+    ![alt text](image-32.png)
+
+### Step 1: Pipeline settings
+
+*   **Pipeline name:** `WebApp-Pipeline`
+*   **Service role:** Select `New service role`. AWS will automatically create a role for CodePipeline to use.
+*   **Advanced settings > Execution mode:** Select `Superseded`. This ensures that if you push multiple changes quickly, the pipeline will stop the older execution and start a new one with the latest commit.
+*   Click **Next**.
+    ![alt text](image-33.png)
+
+### Step 2: Source stage
+
+*   **Source provider:** Select `GitHub (Version 2)`.
+*   Click **Connect to GitHub**. A new window will pop up to authorize AWS to access your GitHub account. Give your connection a name and complete the authorization.
+    ![alt text](image-35.png)
+    ![alt text](image-36.png)
+    ![alt text](image-37.png)
+*   Once connected, select the forked repository (`apachewebsite`) from the dropdown.
+*   **Branch name:** Select `master`.
+*   Leave the other settings as default and click **Next**.
+    ![alt text](image-38.png)
+
+### Step 3: Build stage
+
+*   For now, we will skip the build stage to create a simple source-to-deploy pipeline. Click **Skip build stage** and confirm. We will add a build stage later.
+    ![alt text](image-39.png)
+
+### Step 4: Deploy stage
+
+*   **Deploy provider:** Select `AWS Elastic Beanstalk`.
+*   **Region:** Ensure it's the same region where you created your Beanstalk environment.
+*   **Application name:** Select `MyWebApp` (the application you created in Part 2).
+*   **Environment name:** Select the environment that was created for your application.
+*   Click **Next**.
+    ![alt text](image-58.png)
+
+### Step 5: Review and Create
+
+*   Review all the configurations and click **Create pipeline**.
+    ![alt text](image-59.png)
+
+The pipeline will immediately trigger, pulling the code from GitHub and attempting to deploy it to Elastic Beanstalk.
 ![alt text](image-60.png)
 
-**Deployment WILL FAIL**
-Lets solve the issue:
-If the Deployment fails this is because the IAM role does not have elastic beanstalk
-full permission. Select code pipeline and check the role attached to it…and now go to
-iam and search for the role and attach that specific role
+---
 
-- Click on deploy box on deploy button
-![alt text](image-61.png)
-- Settings -> click on service role ARN
-![alt text](image-62.png)
-- Add Policies
-![alt text](image-63.png)
-![alt text](image-64.png)
-- Add Permissions
-- Add retry the failed stage in pipeline
-![alt text](image-65.png)
+## Part 4: Troubleshooting the First Deployment
+
+The initial deployment will likely fail at the "Deploy" stage. **This is expected.**
+
+**Reason:** The service role that CodePipeline created for itself does not have the necessary permissions to perform actions on Elastic Beanstalk. We need to grant it access.
+
+1.  In the failed pipeline view, click on the **Deploy** stage.
+2.  Navigate to the **Configuration** tab for the pipeline settings and click on the **Service role ARN**. This will take you to the IAM console.
+    ![alt text](image-62.png)
+
+3.  In the IAM role's **Permissions** tab, click **Add permissions** > **Attach policies**.
+    ![alt text](image-63.png)
+
+4.  Search for `AWSElasticBeanstalkFullAccess` and check the box next to it.
+    ![alt text](image-64.png)
+
+5.  Click **Add permissions**.
+
+6.  Now, go back to your CodePipeline and click **Retry failed stage** on the "Deploy" stage.
+    ![alt text](image-65.png)
+
+This time, the deployment should succeed! You can verify this by visiting your Elastic Beanstalk URL, which should now display the content from your forked GitHub repository.
 ![alt text](image-66.png)
-- Now lets go and check the environment endpoint url for beanstalk
-![alt text](image-67.png)
-![alt text](image-68.png)
 
-**# if we update anything in the github repo automatically my pipeline should trigger**
+---
 
-### Code Build
+## Part 5: Integrating a Build Stage with AWS CodeBuild
 
-- Go to IAM -> Select Roles - Create New Role
-![alt text](image-69.png)
-![alt text](image-70.png)
-![alt text](image-71.png)
-![alt text](image-72.png)
+Our current pipeline directly deploys the source code. A more robust pipeline includes a build stage for compiling code, running tests, or packaging artifacts. Let's add one using AWS CodeBuild.
 
-- Go to Code Build
-![alt text](image-73.png)
-![alt text](image-74.png)
-![alt text](image-75.png)
-![alt text](image-76.png)
-![alt text](image-77.png)
+Our forked repository already contains a `buildspec.yml` file. This file tells CodeBuild which commands to run.
 
-- Click on below link
-    - https://github.com/akshu20791/apachewebsite/blob/master/buildspec.yml
-    - And copy the content of this file
-![alt text](image-78.png) 
-- Create build project   
-![alt text](image-79.png)
+```yml
+# buildspec.yml
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      php: 7.3
+  build:
+    commands:
+      - echo "No build commands needed for this simple PHP app."
+      - echo "In a real project, you might run tests or composer install here."
+  post_build:
+    commands:
+      - echo "Build completed on `date`"
+artifacts:
+  files:
+    - '**/*'
+```
+![alt text](image-78.png)
 
-### Now we will integrate the code build in the pipeline
-![alt text](image-80.png)
-- Add stage below source
-![alt text](image-81.png)
-![alt text](image-82.png)
-- Add action group
-![alt text](image-83.png)
-![alt text](image-84.png)
-- Done
-- Save the pipeline
-- Now we update anything on github repo you will see the pipeline would be deployed
+### Add the Build Stage to the Pipeline
+
+1.  Go to your pipeline in the CodePipeline console and click **Edit**.
+    ![alt text](image-80.png)
+
+2.  Between the `Source` and `Deploy` stages, click **Add stage**.
+    ![alt text](image-81.png)
+
+3.  Enter `Build` as the **Stage name** and click **Add stage**.
+    ![alt text](image-82.png)
+
+4.  In the new Build stage, click **Add action group**.
+    ![alt text](image-83.png)
+
+5.  Configure the build action:
+    *   **Action name:** `CodeBuild-Project`
+    *   **Action provider:** Select `AWS CodeBuild`.
+    *   **Region:** Ensure your region is selected.
+    *   **Input artifacts:** This should be pre-filled with the source artifact (`SourceArtifact`).
+    *   Under **Project name**, click **Create project**. A new window will open.
+        ![alt text](image-84.png)
+
+6.  **Create the CodeBuild Project:**
+    *   **Project name:** `webapp-build`
+    *   **Environment image:** `Managed image`
+    *   **Operating System:** `Amazon Linux 2`
+    *   **Runtime(s):** `Standard`
+    *   **Image:** `aws/codebuild/amazonlinux2-x86_64-standard:4.0` (or a recent version)
+    *   **Service role:** `New service role`. CodeBuild will create a role for itself.
+    *   **Buildspec:** Leave `Use a buildspec file` selected. This tells CodeBuild to look for `buildspec.yml` in the root of your repository.
+    *   Leave all other settings as default and click **Create build project**.
+    ![alt text](image-73.png)
+    ![alt text](image-74.png)
+    ![alt text](image-75.png)
+    ![alt text](image-76.png)
+    ![alt text](image-77.png)
+
+7.  Once the CodeBuild project is created, the window will close. Back in the pipeline editor, click **Done** for the action group.
+
+8.  Click **Save** at the top right of the pipeline editor to save the new structure.
+
+---
+
+## Part 6: Testing the Full End-to-End Pipeline
+
+Now let's test the complete pipeline. Any change pushed to the GitHub repository should automatically trigger the build and deploy process.
+
+1.  Go to your forked `apachewebsite` repository on GitHub.
+2.  Edit one of the files (e.g., `index.php`) and make a small visible change.
+3.  Commit the change directly to the `master` branch.
+4.  Navigate back to your CodePipeline in the AWS Console. You will see that it has automatically started a new execution.
+5.  Watch as the pipeline progresses through the `Source`, `Build`, and `Deploy` stages.
+    ![alt text](image-85.png)
+6.  Once all stages are green, refresh your Elastic Beanstalk application URL. You should see your changes live!
+
+Congratulations! You have successfully built a fully automated CI/CD pipeline on AWS.
