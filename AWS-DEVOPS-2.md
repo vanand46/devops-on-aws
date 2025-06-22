@@ -119,3 +119,39 @@ iam and search for the role and attach that specific role
 - Now lets go and check the environment endpoint url for beanstalk
 ![alt text](image-67.png)
 ![alt text](image-68.png)
+
+**# if we update anything in the github repo automatically my pipeline should trigger**
+
+### Code Build
+
+- Go to IAM -> Select Roles - Create New Role
+![alt text](image-69.png)
+![alt text](image-70.png)
+![alt text](image-71.png)
+![alt text](image-72.png)
+
+- Go to Code Build
+![alt text](image-73.png)
+![alt text](image-74.png)
+![alt text](image-75.png)
+![alt text](image-76.png)
+![alt text](image-77.png)
+
+- Click on below link
+    - https://github.com/akshu20791/apachewebsite/blob/master/buildspec.yml
+    - And copy the content of this file
+![alt text](image-78.png) 
+- Create build project   
+![alt text](image-79.png)
+
+### Now we will integrate the code build in the pipeline
+![alt text](image-80.png)
+- Add stage below source
+![alt text](image-81.png)
+![alt text](image-82.png)
+- Add action group
+![alt text](image-83.png)
+![alt text](image-84.png)
+- Done
+- Save the pipeline
+- Now we update anything on github repo you will see the pipeline would be deployed
