@@ -57,9 +57,9 @@ $ ls # verify the directory
 
 ***Note*** But before entering these commands in the machine we need to use secret key and access secret key to get access of aws account from the machine.
 
-![alt text](image.png)
-![alt text](image-1.png)
-![alt text](image-2.png)
+![alt text](images-1/image.png)
+![alt text](images-1/image-1.png)
+![alt text](images-1/image-2.png)
 
 **Step 3: Configure AWS CLI on EC2**
 ```bash
@@ -78,8 +78,8 @@ $ apt install docker.io -y
 **Step 5: Push Docker Image to ECR**
 Return to your ECR repository and click `View Push Commands`. Run the following in your EC2 instance (modify values for your AWS account):
 
-![alt text](image-3.png)
-![alt text](image-4.png)
+![alt text](images-1/image-3.png)
+![alt text](images-1/image-4.png)
 
 ***Copy the commands in screenshot above one by one in your machine***
 ```bash
@@ -88,7 +88,7 @@ $ docker build -t awsdevops/ecr-images .
 $ docker tag awsdevops/ecr-images:latest 018864656235.dkr.ecr.us-east-1.amazonaws.com/awsdevops/ecr-images:latest
 ```
 
-![alt text](image-5.png)
+![alt text](images-1/image-5.png)
 
 **Step 6: Create ECS Cluster and Deploy**
 - Go to Amazon ECS in the AWS Console.
@@ -98,37 +98,37 @@ $ docker tag awsdevops/ecr-images:latest 018864656235.dkr.ecr.us-east-1.amazonaw
 - Create a new Service to run the task.
 - You can refer to screenshots or the AWS docs for guidance.
 
-![alt text](image-6.png)
-![alt text](image-7.png)
-![alt text](image-8.png)
-![alt text](image-9.png)
-![alt text](image-10.png)
-![alt text](image-11.png)
-![alt text](image-12.png)
-![alt text](image-13.png)
-![alt text](image-14.png)
-![alt text](image-15.png)
-![alt text](image-16.png)
-![alt text](image-17.png)
-![alt text](image-18.png)
-![alt text](image-19.png)
-![alt text](image-20.png)
-![alt text](image-21.png)
-![alt text](image-22.png)
+![alt text](images-1/image-6.png)
+![alt text](images-1/image-7.png)
+![alt text](images-1/image-8.png)
+![alt text](images-1/image-9.png)
+![alt text](images-1/image-10.png)
+![alt text](images-1/image-11.png)
+![alt text](images-1/image-12.png)
+![alt text](images-1/image-13.png)
+![alt text](images-1/image-14.png)
+![alt text](images-1/image-15.png)
+![alt text](images-1/image-16.png)
+![alt text](images-1/image-17.png)
+![alt text](images-1/image-18.png)
+![alt text](images-1/image-19.png)
+![alt text](images-1/image-20.png)
+![alt text](images-1/image-21.png)
+![alt text](images-1/image-22.png)
 
 **Step 7: Configure Networking & Security & Deploy**
 - Create a new security group that allows inbound traffic on the application port (e.g., 8080).
 - Attach the security group to the ECS service or task.
 - Choose the appropriate VPC and subnet configuration (public if you need external access).
 
-![alt text](image-23.png)
-![alt text](image-24.png)
-![alt text](image-25.png)
-![alt text](image-26.png)
-![alt text](image-27.png)
-![alt text](image-28.png)
-![alt text](image-29.png)
-![alt text](image-30.png)
+![alt text](images-1/image-23.png)
+![alt text](images-1/image-24.png)
+![alt text](images-1/image-25.png)
+![alt text](images-1/image-26.png)
+![alt text](images-1/image-27.png)
+![alt text](images-1/image-28.png)
+![alt text](images-1/image-29.png)
+![alt text](images-1/image-30.png)
 
 **Final Result**
 Once deployed, your application should be accessible via the public IP assigned to the ECS task or Load Balancer.
